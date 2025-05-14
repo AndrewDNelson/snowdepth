@@ -13,14 +13,16 @@ DEFAULT_DATE = datetime.today()
 
 # ========== Utility Functions ==========
 
+# Goal: add day directories to path
+
 def format_date(date: datetime):
-    return date.strftime("%Y"), date.strftime("%m_%b"), date.strftime("%Y%m%d")
+    return date.strftime("%Y"), date.strftime("%m_%b"), date.strftime("%Y%m%d"), date.strftime("%d")
 
 def build_snodas_url(date: datetime):
     """
     Builds the SNODAS tar file URL and expected filename for the given date.
     """
-    year, month_str, file_date = format_date(date)
+    year, month_str, file_date, _ = format_date(date)
     filename = f"SNODAS_unmasked_{file_date}.tar"
     url = f"{BASE_URL}/{year}/{month_str}/{filename}"
     return url, filename
@@ -29,8 +31,8 @@ def build_output_dir(date: datetime) -> Path:
     """
     Builds the local directory path based on date.
     """
-    year, month_str, _ = format_date(date)
-    return BASE_DIR / year / month_str
+    year, month_str, _, day = format_date(date)
+    return BASE_DIR / year / month_str / day
 
 # ========== Main Download Logic ==========
 
