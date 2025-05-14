@@ -13,8 +13,6 @@ DEFAULT_DATE = datetime.today()
 
 # ========== Utility Functions ==========
 
-# Goal: add day directories to path
-
 def format_date(date: datetime):
     return date.strftime("%Y"), date.strftime("%m_%b"), date.strftime("%Y%m%d"), date.strftime("%d")
 
