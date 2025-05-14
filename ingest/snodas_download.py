@@ -1,6 +1,7 @@
 import os
 import requests
 import tarfile
+import gzip
 from datetime import datetime
 from pathlib import Path
 
@@ -54,12 +55,26 @@ def download_snodas_file(date: datetime):
 
         print(f"Downloaded to {local_tar_path}")
 
+        # Define which files to keep
+        keep_keywords = ["11034"]  # Snow depth only
+
+        # Extract and filter
         with tarfile.open(local_tar_path, "r") as tar:
-            tar.extractall(path=output_dir)
-        print(f"Extracted contents to {output_dir}")
+            members = [m for m in tar.getmembers() if any(k in m.name for k in keep_keywords)]
+            tar.extractall(path=output_dir, members=members)
+
+        print(f"Extracted {len(members)} files matching keywords {keep_keywords}")
 
         os.remove(local_tar_path)
         print(f"Cleaned up tar file")
+
+        # Extract all .gz files in the output directory
+        for gz_file in output_dir.glob("*.gz"):
+            extracted_file_path = gz_file.with_suffix('')  # Remove .gz extension
+            with gzip.open(gz_file, "rb") as gz:
+                with open(extracted_file_path, "wb") as extracted_file:
+                    extracted_file.write(gz.read())
+            os.remove(gz_file)
 
     except requests.exceptions.RequestException as e:
         print(f"Download failed: {e}")
