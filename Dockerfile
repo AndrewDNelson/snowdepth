@@ -1,4 +1,4 @@
-FROM python:3.11-bullseye
+FROM python:3.13-bullseye
 
 # Set working directory
 WORKDIR /app
@@ -10,4 +10,4 @@ COPY . /app
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-CMD ["python", "ingest/snodas_download.py"]
+CMD ["python", "ingest/ndsi_download.py"]
