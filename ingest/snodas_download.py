@@ -7,7 +7,7 @@ from pathlib import Path
 
 # ========== Configuration ==========
 
-BASE_DIR = Path("data")
+BASE_DIR = Path("data/snodas")
 BASE_URL = "https://noaadata.apps.nsidc.org/NOAA/G02158/unmasked"
 DEFAULT_DATE = datetime.today()
 
@@ -20,17 +20,17 @@ def build_snodas_url(date: datetime):
     """
     Builds the SNODAS tar file URL and expected filename for the given date.
     """
-    year, month_str, file_date, _ = format_date(date)
+    year, month, file_date, _ = format_date(date)
     filename = f"SNODAS_unmasked_{file_date}.tar"
-    url = f"{BASE_URL}/{year}/{month_str}/{filename}"
+    url = f"{BASE_URL}/{year}/{month}/{filename}"
     return url, filename
 
 def build_output_dir(date: datetime) -> Path:
     """
     Builds the local directory path based on date.
     """
-    year, month_str, _, day = format_date(date)
-    return BASE_DIR / year / month_str / day
+    year, month, _, day = format_date(date)
+    return BASE_DIR / year / month / day
 
 # ========== Main Download Logic ==========
 
@@ -82,5 +82,5 @@ def download_snodas_file(date: datetime):
 # ========== Entry Point ==========
 
 if __name__ == "__main__":
-    target_date = DEFAULT_DATE.replace(year=2025, month=5, day=12)
+    target_date = DEFAULT_DATE.replace(year=2025, month=5, day=20)
     download_snodas_file(target_date)
