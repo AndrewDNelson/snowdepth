@@ -56,3 +56,10 @@
             │ Serve result │
             └──────────────┘
 ```
+
+
+When downloading data from the NDSI, we need to consider the following:
+Cloud coverage
+Map coverage (is it using older data, or is it just empty? How do you remedy this?)
+Is the NDSI already claculated, or do we need to calculate it ourselves?
+Missing days. Do we fallback until there are days availabile? 

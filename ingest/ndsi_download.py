@@ -1,8 +1,4 @@
-# When downloading data from the NDSI, we need to consider the following:
-# Cloud coverage
-# Map coverage (is it using older data, or is it just empty? How do you remedy this?)
-# Is the NDSI already claculated, or do we need to calculate it ourselves?
-
+import argparse
 import os
 import requests
 import bs4
@@ -12,9 +8,13 @@ from datetime import datetime
 
 # ========== Configuration ==========
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--date", type=str, help="Target date (YYYY-MM-DD)")
+args = parser.parse_args()
+
 BASE_DIR = Path("data/ndsi")
 BASE_URL = "https://cmr.earthdata.nasa.gov/virtual-directory/collections/C3028765772-NSIDC_CPRD/temporal"
-DEFAULT_DATE = datetime.today()
+DEFAULT_DATE = datetime.strptime(args.date, "%Y-%m-%d") if args.date else datetime.today()
 
 def setup_netrc():
     netrc_path = Path.home() / ".netrc"
@@ -95,5 +95,3 @@ else:
                 print(f"Status Code: {getattr(response, 'status_code', 'N/A')}")
                 if hasattr(response, 'text'):
                     print(response.text[:500])
-
-

@@ -10,4 +10,4 @@ COPY . /app
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-CMD ["python", "ingest/ndsi_download.py"]
+CMD ["python", "ingest/run_ingest.py"]

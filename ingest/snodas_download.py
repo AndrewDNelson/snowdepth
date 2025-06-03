@@ -1,3 +1,4 @@
+import argparse
 import os
 import requests
 import tarfile
@@ -7,9 +8,12 @@ from pathlib import Path
 
 # ========== Configuration ==========
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--date", type=str, help="Target date (YYYY-MM-DD)")
+args = parser.parse_args()
+DEFAULT_DATE = datetime.strptime(args.date, "%Y-%m-%d") if args.date else datetime.today()
 BASE_DIR = Path("data/snodas")
 BASE_URL = "https://noaadata.apps.nsidc.org/NOAA/G02158/unmasked"
-DEFAULT_DATE = datetime.today()
 
 # ========== Utility Functions ==========
 
