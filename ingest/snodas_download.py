@@ -11,7 +11,7 @@ from pathlib import Path
 parser = argparse.ArgumentParser()
 parser.add_argument("--date", type=str, help="Target date (YYYY-MM-DD)")
 args = parser.parse_args()
-DEFAULT_DATE = datetime.strptime(args.date, "%Y-%m-%d") if args.date else datetime.today()
+TARGET_DATE = datetime.strptime(args.date, "%Y-%m-%d") if args.date else datetime.today()
 BASE_DIR = Path("data/snodas")
 BASE_URL = "https://noaadata.apps.nsidc.org/NOAA/G02158/unmasked"
 
@@ -86,5 +86,4 @@ def download_snodas_file(date: datetime):
 # ========== Entry Point ==========
 
 if __name__ == "__main__":
-    target_date = DEFAULT_DATE.replace(year=2025, month=5, day=20)
-    download_snodas_file(target_date)
+    download_snodas_file(TARGET_DATE)
