@@ -4,6 +4,7 @@ import logging
 import os
 import requests
 import re
+from ingest.common import setup_logging, build_output_dir, format_date
 from datetime import datetime
 from pathlib import Path
 
@@ -31,37 +32,14 @@ def setup_netrc():
         os.chmod(netrc_path, 0o600)
 
 setup_netrc()
-
-def setup_logging(name: str, date: str):
-    logs_dir = Path("logs")
-    logs_dir.mkdir(exist_ok=True)
-
-    log_path = f"logs/{name}_{date}.log"
-
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(message)s",
-        handlers=[
-            logging.FileHandler(log_path),
-            logging.StreamHandler() # also logs to console
-        ]
-    )
-
 setup_logging("ndsi", args.date)
 
 # ========== Utility Functions ==========
 
-def format_date(date: datetime) -> str:
-    return date.strftime("%Y"), date.strftime("%m"), date.strftime("%d")
-
 def build_nasa_url(date: datetime):
-    year, month, day = format_date(date)
+    year, month, day = format_date(date)[:3]
     url = f"{BASE_URL}/{year}/{month}/{day}/"
     return url
-
-def build_output_dir(date: datetime):
-    year, month, day = format_date(date)
-    return BASE_DIR / year / month / day
    
 # ========== Main Script ==========
 
@@ -78,7 +56,7 @@ hrefs = [link['href'] for link in links if link.has_attr('href')]
 if not hrefs:
     logging.warning("No .hdf download links found at %s", url)
 else:
-    output_dir = build_output_dir(TARGET_DATE)
+    output_dir = build_output_dir(TARGET_DATE, BASE_DIR)
     os.makedirs(output_dir, exist_ok=True)
 
     with requests.Session() as session:
