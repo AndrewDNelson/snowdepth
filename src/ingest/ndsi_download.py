@@ -1,10 +1,12 @@
 import argparse
+import bs4
+import logging
 import os
 import requests
-import bs4
 import re
-from pathlib import Path
+from ingest.common import setup_logging, build_output_dir, format_date
 from datetime import datetime
+from pathlib import Path
 
 # ========== Configuration ==========
 
@@ -30,20 +32,14 @@ def setup_netrc():
         os.chmod(netrc_path, 0o600)
 
 setup_netrc()
+setup_logging("ndsi", args.date)
 
 # ========== Utility Functions ==========
 
-def format_date(date: datetime) -> str:
-    return date.strftime("%Y"), date.strftime("%m"), date.strftime("%d")
-
 def build_nasa_url(date: datetime):
-    year, month, day = format_date(date)
+    year, month, day = format_date(date)[:3]
     url = f"{BASE_URL}/{year}/{month}/{day}/"
     return url
-
-def build_output_dir(date: datetime):
-    year, month, day = format_date(date)
-    return BASE_DIR / year / month / day
    
 # ========== Main Script ==========
 
@@ -58,9 +54,9 @@ links = data.find_all('a', href=re.compile(r'\.hdf$'))
 hrefs = [link['href'] for link in links if link.has_attr('href')]
 
 if not hrefs:
-    print("No .hdf download links found.")
+    logging.warning("No .hdf download links found at %s", url)
 else:
-    output_dir = build_output_dir(TARGET_DATE)
+    output_dir = build_output_dir(TARGET_DATE, BASE_DIR)
     os.makedirs(output_dir, exist_ok=True)
 
     with requests.Session() as session:
@@ -83,12 +79,10 @@ else:
                         for chunk in r.iter_content(chunk_size=8192):
                             f.write(chunk)
                     success_count += 1
+                    logging.info("Saved to %s", local_path)
                 else:
-                    print(f"Unexpected response code {response.status_code} for {download_url}")
-                    print(response.text[:500])
+                    logging.error("Unexpected response code %s for %s", response.status_code, download_url)
                     
             except requests.exceptions.RequestException as e:
-                print(f"Failed to download {download_url}: {e}")
-                print(f"Status Code: {getattr(response, 'status_code', 'N/A')}")
-                if hasattr(response, 'text'):
-                    print(response.text[:500])
+                logging.error("Download failed for %s: %s", download_url, str(e))
+        logging.info("Successfully downloaded %s of %s NDSI files.", success_count, len(hrefs))

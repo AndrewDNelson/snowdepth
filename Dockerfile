@@ -10,4 +10,6 @@ COPY . /app
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-ENTRYPOINT ["python", "ingest/run_ingest.py"]
+ENV PYTHONPATH=/app/src
+
+ENTRYPOINT ["python", "src/ingest/run_ingest.py"]
