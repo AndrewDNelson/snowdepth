@@ -1,24 +1,31 @@
+"""Download NDSI HDF files from NASA's EarthData."""
+
 import argparse
-import bs4
 import logging
 import os
-import requests
 import re
-from ingest.common import setup_logging, build_output_dir, format_date
+
 from datetime import datetime
 from pathlib import Path
+from typing import List
+
+import requests
+import bs4
+
+from ingest.common import setup_logging, build_output_dir, format_date
 
 # ========== Configuration ==========
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--date", type=str, help="Target date (YYYY-MM-DD)")
-args = parser.parse_args()
-
 BASE_DIR = Path("data/ndsi")
 BASE_URL = "https://cmr.earthdata.nasa.gov/virtual-directory/collections/C3028765772-NSIDC_CPRD/temporal"
-TARGET_DATE = datetime.strptime(args.date, "%Y-%m-%d") if args.date else datetime.today()
 
-def setup_netrc():
+def parse_args() -> argparse.Namespace:
+    """Return parsed command line arguments."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--date", type=str, help="Target date (YYYY-MM-DD)")
+    return parser.parse_args()
+
+def setup_netrc() -> None:
     netrc_path = Path.home() / ".netrc"
     if not netrc_path.exists():
         USERNAME = os.getenv("EARTHDATA_USERNAME")
@@ -31,58 +38,78 @@ def setup_netrc():
         )
         os.chmod(netrc_path, 0o600)
 
-setup_netrc()
-setup_logging("ndsi", args.date)
-
 # ========== Utility Functions ==========
 
-def build_nasa_url(date: datetime):
+def build_nasa_url(date: datetime) -> str:
+    """Return the listing URL for a given date."""
     year, month, day = format_date(date)[:3]
-    url = f"{BASE_URL}/{year}/{month}/{day}/"
-    return url
-   
-# ========== Main Script ==========
+    return f"{BASE_URL}/{year}/{month}/{day}/"
 
-url = build_nasa_url(TARGET_DATE)
+def fetch_hdf_links(url: str) -> List[str]:
+    """Return HDF file URLs found at the given page."""
+    try:
+        page = requests.get(url)
+        page.raise_for_status()
+    except requests.RequestException as exc:
+        logging.error("Failed to fetch listing from %s: %s", url, exc)
+        return[]
+    
+    soup = bs4.BeautifulSoup(page.text, "html.parser")
 
-page = requests.get(url)
-html = page.content.decode("utf-8", errors="replace")
-data = bs4.BeautifulSoup(html, "html.parser")
+    # Find all .hdf file links
+    links = soup.find_all('a', href=re.compile(r'\.hdf$'))
+    hrefs = [link['href'] for link in links if link.has_attr('href')]
+    return [href if href.startswith("http") else url + href for href in hrefs]
 
-# Find all .hdf file links
-links = data.find_all('a', href=re.compile(r'\.hdf$'))
-hrefs = [link['href'] for link in links if link.has_attr('href')]
+def download_ndsi_files(date: datetime) -> None:
+    """Download all HDF files for *date* into the configured directory."""
+    url = build_nasa_url(date)
+    hrefs = fetch_hdf_links(url)
 
-if not hrefs:
-    logging.warning("No .hdf download links found at %s", url)
-else:
-    output_dir = build_output_dir(TARGET_DATE, BASE_DIR)
+    if not hrefs:
+        logging.warning("No .hdf download links found at %s", url)
+        return
+    
+    output_dir = build_output_dir(date, BASE_DIR)
     os.makedirs(output_dir, exist_ok=True)
 
+    success_count = 0
     with requests.Session() as session:
-        success_count = 0
         for href in hrefs:
-            download_url = href if href.startswith("http") else url + href
-            local_filename = download_url.split("/")[-1]
+            local_filename = href.split("/")[-1]
             local_path = output_dir / local_filename
 
             try:
-                response = session.get(download_url, allow_redirects=False)
+                response = session.get(href, allow_redirects=False)
 
                 if response.status_code in (302, 303):
                     signed_url = response.headers["Location"]
 
-                    r = session.get(signed_url, stream=True)
-                    r.raise_for_status()
+                    with session.get(signed_url, stream=True) as r:
+                        r.raise_for_status()
+                        with open(local_path, "wb") as f:
+                            for chunk in r.iter_content(chunk_size=8192):
+                                f.write(chunk)
 
-                    with open(local_path, "wb") as f:
-                        for chunk in r.iter_content(chunk_size=8192):
-                            f.write(chunk)
                     success_count += 1
-                    logging.info("Saved to %s", local_path)
+                    logging.info("Saved %s", local_path)
                 else:
-                    logging.error("Unexpected response code %s for %s", response.status_code, download_url)
+                    logging.error(
+                        "Unexpected response code %s for %s", 
+                        response.status_code, 
+                        href,
+                    )
                     
-            except requests.exceptions.RequestException as e:
-                logging.error("Download failed for %s: %s", download_url, str(e))
+            except requests.exceptions.RequestException as exc:
+                logging.error("Download failed for %s: %s", href, str(exc))
         logging.info("Successfully downloaded %s of %s NDSI files.", success_count, len(hrefs))
+
+def main() -> None:
+    args = parse_args()
+    target_date = datetime.strptime(args.date, "%Y-%m-%d") if args.date else datetime.today()
+    setup_netrc()
+    setup_logging("ndsi", target_date.strftime("%Y-%m-%d"))
+    download_ndsi_files(target_date)
+
+if __name__ == "__main__":
+    main()
