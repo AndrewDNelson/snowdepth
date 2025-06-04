@@ -22,13 +22,13 @@ ingest_date = args.date
 
 print(f"▶ Running SNODAS ingestion for {ingest_date}...")
 subprocess.run(
-    ["python", "ingest/snodas_download.py", "--date", ingest_date],
+    ["python", "src/ingest/snodas_download.py", "--date", ingest_date],
     check=True
 )
 
 print(f"▶ Running NDSI ingestion for {ingest_date}...")
 subprocess.run(
-    ["python", "ingest/ndsi_download.py", "--date", ingest_date],
+    ["python", "src/ingest/ndsi_download.py", "--date", ingest_date],
     check=True
 )
 

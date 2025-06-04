@@ -10,4 +10,4 @@ COPY . /app
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-ENTRYPOINT ["python", "ingest/run_ingest.py"]
+ENTRYPOINT ["python", "src/ingest/run_ingest.py"]
