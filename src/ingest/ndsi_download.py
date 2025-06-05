@@ -1,6 +1,5 @@
 """Download NDSI HDF files from NASA's EarthData."""
 
-import argparse
 import logging
 import os
 import re
@@ -12,25 +11,21 @@ from typing import List
 import requests
 import bs4
 
-from ingest.common import setup_logging, build_output_dir, format_date
+from ingest.common import setup_logging, build_output_dir, format_date, parse_args
 
 # ========== Configuration ==========
 
 BASE_DIR = Path("data/ndsi")
 BASE_URL = "https://cmr.earthdata.nasa.gov/virtual-directory/collections/C3028765772-NSIDC_CPRD/temporal"
 
-def parse_args() -> argparse.Namespace:
-    """Return parsed command line arguments."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--date", type=str, help="Target date (YYYY-MM-DD)")
-    return parser.parse_args()
-
 def setup_netrc() -> None:
+    """Retrieve environment variable for authentication."""
     netrc_path = Path.home() / ".netrc"
     if not netrc_path.exists():
         USERNAME = os.getenv("EARTHDATA_USERNAME")
         PASSWORD = os.getenv("EARTHDATA_PASSWORD")
         if not USERNAME or not PASSWORD:
+            logging.error("Missing EARTHDATA_USERNAME or EARTHDATA_PASSWORD in environment.")
             raise RuntimeError("Missing EARTHDATA_USERNAME or EARTHDATA_PASSWORD")
 
         netrc_path.write_text(
@@ -41,12 +36,12 @@ def setup_netrc() -> None:
 # ========== Utility Functions ==========
 
 def build_nasa_url(date: datetime) -> str:
-    """Return the listing URL for a given date."""
+    """Return the listing URL for *date*."""
     year, month, day = format_date(date)[:3]
     return f"{BASE_URL}/{year}/{month}/{day}/"
 
 def fetch_hdf_links(url: str) -> List[str]:
-    """Return HDF file URLs found at the given page."""
+    """Return HDF file URLs found at the given *url*."""
     try:
         page = requests.get(url)
         page.raise_for_status()
