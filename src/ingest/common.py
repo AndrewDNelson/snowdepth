@@ -1,6 +1,8 @@
 import logging
 from datetime import datetime
 from pathlib import Path
+import argparse
+
 
 def setup_logging(name: str, date: str):
     logs_dir = Path("logs")
@@ -23,3 +25,9 @@ def format_date(date: datetime) -> str:
 def build_output_dir(date: datetime, base_dir: Path):
     year, month, day = format_date(date)[:3]
     return base_dir / year / month / day
+
+def parse_args() -> argparse.Namespace:
+    """Return parsed command line arguments."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--date", type=str, help="Target date (YYYY-MM-DD)")
+    return parser.parse_args()

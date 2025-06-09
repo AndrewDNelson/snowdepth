@@ -18,18 +18,24 @@ def parse_args():
 args = parse_args()
 ingest_date = args.date
 
-# ========== Run Ingestion Scripts ==========
+# ========== Main Script ==========
 
-print(f"▶ Running SNODAS ingestion for {ingest_date}...")
-subprocess.run(
-    ["python", "src/ingest/snodas_download.py", "--date", ingest_date],
-    check=True
-)
+def ingest():
+    print(f"▶ Running SNODAS ingestion for {ingest_date}...")
+    subprocess.run(
+        ["python", "src/ingest/snodas_download.py", "--date", ingest_date],
+        check=True
+    )
 
-print(f"▶ Running NDSI ingestion for {ingest_date}...")
-subprocess.run(
-    ["python", "src/ingest/ndsi_download.py", "--date", ingest_date],
-    check=True
-)
+    print(f"▶ Running NDSI ingestion for {ingest_date}...")
+    subprocess.run(
+        ["python", "src/ingest/ndsi_download.py", "--date", ingest_date],
+        check=True
+    )
 
-print("✅ Ingestion complete.")
+    print("✅ Ingestion complete.")
+
+# ========== Entry Point ==========
+
+if __name__ == "__main__":
+    ingest()

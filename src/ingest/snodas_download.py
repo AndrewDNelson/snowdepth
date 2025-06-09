@@ -1,30 +1,27 @@
-import argparse
-import os
-import requests
-import tarfile
+"""Download SNODAS snow depth files from noaa."""
+
 import gzip
 import logging
-from ingest.common import setup_logging, format_date, build_output_dir
+import os
+import tarfile
+
 from datetime import datetime
 from pathlib import Path
+from typing import Tuple
+
+import requests
+
+from ingest.common import setup_logging, build_output_dir, format_date, parse_args
 
 # ========== Configuration ==========
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--date", type=str, help="Target date (YYYY-MM-DD)")
-args = parser.parse_args()
-TARGET_DATE = datetime.strptime(args.date, "%Y-%m-%d") if args.date else datetime.today()
 BASE_DIR = Path("data/snodas")
 BASE_URL = "https://noaadata.apps.nsidc.org/NOAA/G02158/unmasked"
 
-setup_logging("snodas", args.date)
-
 # ========== Utility Functions ==========
 
-def build_snodas_url(date: datetime):
-    """
-    Builds the SNODAS tar file URL and expected filename for the given date.
-    """
+def build_snodas_url(date: datetime) -> Tuple[str, str]:
+    """Builds the SNODAS tar file URL and expected filename for the given date."""
     year, _, _, month_str, file_date = format_date(date)
     filename = f"SNODAS_unmasked_{file_date}.tar"
     url = f"{BASE_URL}/{year}/{month_str}/{filename}"
@@ -33,6 +30,7 @@ def build_snodas_url(date: datetime):
 # ========== Main Download Logic ==========
 
 def download_snodas_file(date: datetime):
+    """Download TAR file for *date* into the configured directory, then it extracts it."""
     url, filename = build_snodas_url(date)
     output_dir = build_output_dir(date, BASE_DIR)
     local_tar_path = output_dir / filename
@@ -77,8 +75,11 @@ def download_snodas_file(date: datetime):
     except requests.exceptions.RequestException as e:
         logging.error("Failed to download SNODAS for %s: %s", date, str(e))
 
-
-# ========== Entry Point ==========
+def main() -> None:
+    args = parse_args()
+    target_date = datetime.strptime(args.date, "%Y-%m-%d") if args.date else datetime.today()
+    setup_logging("snodas", target_date.strftime("%Y-%m-%d"))
+    download_snodas_file(target_date)
 
 if __name__ == "__main__":
-    download_snodas_file(TARGET_DATE)
+    main()
