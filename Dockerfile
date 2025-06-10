@@ -10,6 +10,9 @@ COPY . /app
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
+# Instal gdal
+RUN apt-get update && apt-get install -y gdal-bin
+
 ENV PYTHONPATH=/app/src
 
 ENTRYPOINT ["python", "src/ingest/run_ingest.py"]
