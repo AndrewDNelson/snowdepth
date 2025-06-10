@@ -1,4 +1,4 @@
-import os
+import subprocess
 
 from pathlib import Path
 from datetime import datetime
@@ -15,8 +15,8 @@ data type = 2
 interleave = bsq
 byte order = 1"""
 
-def create_header(date: datetime):
-    """Generate header file in data directory"""
+def snodas_tif(date: datetime) -> None:
+    """Generate header file in data directory, then create GeoTIFF"""
     output_dir = build_output_dir(date, BASE_DIR)
 
     file_name = next((f for f in output_dir.iterdir() if f.suffix == ".dat"), None)
@@ -28,15 +28,21 @@ def create_header(date: datetime):
     with open(hdr_path, "x") as f:
         f.write(HDR_CONTENT)
 
-def convert_snodas(date: datetime):
+    dat_path = file_name.with_suffix(".dat")
+    tif_path = file_name.with_suffix(".tif")
+    gdal_translate(dat_path, tif_path)
+
+def gdal_translate(input_path: Path, output_path: Path) -> None:
+    subprocess.run(
+        ["gdal_translate", "-of", "GTiff", "-a_srs", "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs", "-a_nodata", "-9999", "-a_ullr", "-130.51708333333333", "58.23291666666667", "-62.25041666666667", "24.09958333333333", str(input_path), str(output_path)]
+        check=True,
+        capture_output=True
+        text=True
+    )
+
+def convert_snodas(date: datetime) -> None:
     """Create GeoTIFF file from .dat"""
-    create_header(date)
-
-    """
-    3. Run the command: gdal_translate -of GTiff -a_srs '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs' -a_nodata -9999 -a_ullr -130.51708333333333 58.23291666666667 -62.25041666666667 24.09958333333333 <input.dat> <output.tif>
-    """
-
-
+    snodas_tif(date)
 
 def main() -> None:
     args = parse_args()
