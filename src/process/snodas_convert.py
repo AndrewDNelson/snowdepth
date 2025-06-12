@@ -35,9 +35,9 @@ def convert_snodas(date: datetime) -> None:
     with open(hdr_path, "x") as f:
         f.write(HDR_CONTENT)
 
-    gdal_translate(dat_path, tif_path)
+    dat_to_tif(dat_path, tif_path)
 
-def gdal_translate(input_path: Path, output_path: Path) -> None:
+def dat_to_tif(input_path: Path, output_path: Path) -> None:
     """Run gdal translate command."""
     subprocess.run(
         ["gdal_translate", "-of", "GTiff", "-a_srs", "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs", "-a_nodata", "-9999", "-a_ullr", "-130.51708333333333", "58.23291666666667", "-62.25041666666667", "24.09958333333333", str(input_path), str(output_path)]
