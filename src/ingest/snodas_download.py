@@ -32,7 +32,7 @@ def build_snodas_url(date: datetime) -> Tuple[str, str]:
 def download_snodas_file(date: datetime):
     """Download TAR file for *date* into the configured directory, then it extracts it."""
     url, filename = build_snodas_url(date)
-    output_dir = build_output_dir(date, BASE_DIR)
+    output_dir = build_output_dir(date, BASE_DIR / "raw")
     local_tar_path = output_dir / filename
 
     logging.info("Starting SNODAS ingest for %s", date.strftime('%Y-%m-%d'))

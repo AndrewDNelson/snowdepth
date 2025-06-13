@@ -65,7 +65,7 @@ def download_ndsi_files(date: datetime) -> None:
         logging.warning("No .hdf download links found at %s", url)
         return
     
-    output_dir = build_output_dir(date, BASE_DIR)
+    output_dir = build_output_dir(date, BASE_DIR / "raw")
     os.makedirs(output_dir, exist_ok=True)
 
     success_count = 0
