@@ -1,5 +1,6 @@
 """Convert ndsi hdf file to GeoTIFF."""
 
+import os
 import subprocess
 
 from datetime import datetime
@@ -26,14 +27,16 @@ def hdf_to_tif(input_path: Path, output_path: Path):
 
 def convert_ndsi(date: datetime) -> None:
     """Generate header file in data directory, then create GeoTIFF"""
-    output_dir = build_output_dir(date, BASE_DIR)
+    raw_dir = build_output_dir(date, BASE_DIR / "raw")
+    converted_dir = build_output_dir(date, BASE_DIR / "converted")
 
-    files = list(f for f in output_dir.iterdir() if f.suffix == ".hdf")
+    files = list(f for f in raw_dir.iterdir() if f.suffix == ".hdf")
     if not files:
-        raise RuntimeError(f"No .hdf files found in {output_dir}")
+        raise RuntimeError(f"No .hdf files found in {raw_dir}")
     
     for hdf_path in files:
-        tif_path = hdf_path.with_suffix(".tif")
+        tif_path = converted_dir / hdf_path.with_suffix(".tif").name
+        os.makedirs(converted_dir, exist_ok=True)
         hdf_to_tif(hdf_path, tif_path)
 
 def main() -> None:

@@ -1,5 +1,6 @@
 """Convert SNODAS binary file to GeoTIFF."""
 
+import os
 import subprocess
 
 from datetime import datetime
@@ -22,19 +23,20 @@ byte order = 1"""
 
 def convert_snodas(date: datetime) -> None:
     """Generate header file in data directory, then create GeoTIFF"""
-    output_dir = build_output_dir(date, BASE_DIR)
+    raw_dir = build_output_dir(date, BASE_DIR / "raw")
+    converted_dir = build_output_dir(date, BASE_DIR / "converted")
 
-    file_name = next((f for f in output_dir.iterdir() if f.suffix == ".dat"), None)
-    if not file_name:
-        raise RuntimeError(f"No .dat file found in {output_dir}")
+    file_path = next((f for f in raw_dir.iterdir() if f.suffix == ".dat"), None)
+    if not file_path:
+        raise RuntimeError(f"No .dat file found in {raw_dir}")
     
-    dat_path = file_name.with_suffix(".dat")
-    tif_path = file_name.with_suffix(".tif")
-    hdr_path = file_name.with_suffix(".hdr")
-    
+    dat_path = file_path.with_suffix(".dat")
+    hdr_path = file_path.with_suffix(".hdr")
     with open(hdr_path, "x") as f:
         f.write(HDR_CONTENT)
 
+    tif_path = converted_dir / file_path.with_suffix(".tif").name
+    os.makedirs(converted_dir, exist_ok=True)
     dat_to_tif(dat_path, tif_path)
 
 def dat_to_tif(input_path: Path, output_path: Path) -> None:

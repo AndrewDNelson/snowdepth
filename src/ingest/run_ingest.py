@@ -27,9 +27,10 @@ def script(arg):
             text=True
         )
     except subprocess.CalledProcessError as e:
-        print("STDOUT:\n", e.stdout)
-        print("STDERR:\n", e.stderr)
-        raise
+        print(f"Script failed: {' '.join(arg)}", file=sys.stderr)
+        print("STDOUT:\n", e.stdout, file=sys.stderr)
+        print("STDERR:\n", e.stderr, file=sys.stderr)
+        sys.exit(e.returncode)  # Exit with the same error code
 
 # ========== Main Script ==========
 
