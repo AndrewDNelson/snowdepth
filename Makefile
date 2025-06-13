@@ -1,4 +1,4 @@
-IMAGE=snowdepth-ingest
+IMAGE=snowdepth
 
 build:
 	docker build -t $(IMAGE) .
