@@ -13,7 +13,7 @@ from ingest.common import build_output_dir
 
 # ========== Configuration ==========
 
-logger = logging.GetLogger()
+logger = logging.getLogger()
 BASE_DIR = Path("data/snodas")
 HDR_CONTENT = """ENVI
 samples = 8192

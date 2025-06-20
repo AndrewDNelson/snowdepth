@@ -13,7 +13,7 @@ from common.cli import CustomArgumentParser
 
 # ========== Configuration ==========
 
-logger = logging.GetLogger()
+logger = logging.getLogger()
 BASE_DIR = Path("data/ndsi")
 
 def hdf_to_tif(input_path: Path, output_path: Path):

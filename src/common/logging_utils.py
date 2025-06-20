@@ -25,7 +25,17 @@ def setup_logging() -> None:
 
     file_handler = logging.FileHandler(log_path, mode="a", encoding="utf-8")
     file_handler.setFormatter(json_formatter)
+
+    stream_handler = logging.StreamHandler()
+    stream_handler.setFormatter(
+         logging.Formatter(
+              fmt="{asctime} {levelname} {name} {message}",
+              style="{",
+              datefmt="%Y-%m-%d %H:%M:%S",
+         )
+    )
     
     logger = logging.getLogger("root")
     logger.setLevel(logging.DEBUG) # Must set loggers base level, can reduce with handler
     logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
