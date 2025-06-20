@@ -99,12 +99,15 @@ def download_ndsi_files(date: datetime) -> None:
                 logging.error("Download failed for %s: %s", href, str(exc))
         logging.info("Successfully downloaded %s of %s NDSI files.", success_count, len(hrefs))
 
+def run(date: datetime) -> None:
+    setup_netrc()
+    download_ndsi_files(date)
+
 def main() -> None:
     args = parse_args()
     target_date = datetime.strptime(args.date, "%Y-%m-%d") if args.date else datetime.today()
-    setup_netrc()
     setup_logging("ndsi", target_date.strftime("%Y-%m-%d"))
-    download_ndsi_files(target_date)
+    run(target_date)
 
 if __name__ == "__main__":
     main()
