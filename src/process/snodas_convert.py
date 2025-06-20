@@ -1,13 +1,12 @@
 """Convert SNODAS binary file to GeoTIFF."""
 
-import argparse
 import os
 import subprocess
 
 from datetime import datetime
 from pathlib import Path
 
-from common.cli import add_date_arg
+from common.cli import CustomArgumentParser
 from ingest.common import build_output_dir
 
 # ========== Configuration ==========
@@ -54,8 +53,8 @@ def run(date: datetime) -> None:
     convert_snodas(date)
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
-    add_date_arg(parser)
+    parser = CustomArgumentParser()
+    parser.add_date_arg()
     args = parser.parse_args()
     target_date = datetime.strptime(args.date, "%Y-%m-%d") if args.date else datetime.today()
     run(target_date)

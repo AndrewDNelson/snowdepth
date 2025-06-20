@@ -1,6 +1,5 @@
 """Download SNODAS snow depth files from noaa."""
 
-import argparse
 import gzip
 import logging
 import os
@@ -12,7 +11,7 @@ from typing import Tuple
 
 import requests
 
-from common.cli import add_date_arg
+from common.cli import CustomArgumentParser
 from ingest.common import setup_logging, build_output_dir, format_date
 
 # ========== Configuration ==========
@@ -81,8 +80,8 @@ def run(date: datetime) -> None:
     download_snodas_file(date)
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
-    add_date_arg(parser)
+    parser = CustomArgumentParser()
+    parser.add_date_arg()
     args = parser.parse_args()
     target_date = datetime.strptime(args.date, "%Y-%m-%d") if args.date else datetime.today()
     setup_logging("snodas", target_date.strftime("%Y-%m-%d"))
