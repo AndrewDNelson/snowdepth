@@ -75,11 +75,14 @@ def download_snodas_file(date: datetime):
     except requests.exceptions.RequestException as e:
         logging.error("Failed to download SNODAS for %s: %s", date, str(e))
 
+def run(date: datetime) -> None:
+    download_snodas_file(date)
+
 def main() -> None:
     args = parse_args()
     target_date = datetime.strptime(args.date, "%Y-%m-%d") if args.date else datetime.today()
     setup_logging("snodas", target_date.strftime("%Y-%m-%d"))
-    download_snodas_file(target_date)
+    run(target_date)
 
 if __name__ == "__main__":
     main()

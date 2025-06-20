@@ -2,6 +2,7 @@ from datetime import datetime
 
 from common.logging_utils import setup_logging
 from ingest.ndsi import run as ingest_ndsi
+from ingest.snodas import run as ingest_snodas
 
 def parse_args():
     import argparse
@@ -19,11 +20,10 @@ def main():
     date = datetime.strptime(args.date, "%Y-%m-%d") if args.date else datetime.today()
 
     setup_logging()
-    ingest_ndsi(date)
-    # call modules here?
-    # run snodas ingest
+    # ingest_ndsi(date)
+    ingest_snodas(date)
+
     # run snodas process
-    # run ndsi ingest
     # run ndsi process
 
 
