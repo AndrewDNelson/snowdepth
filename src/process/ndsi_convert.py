@@ -1,12 +1,14 @@
 """Convert ndsi hdf file to GeoTIFF."""
 
+import argparse
 import os
 import subprocess
 
 from datetime import datetime
 from pathlib import Path
 
-from ingest.common import build_output_dir, parse_args
+from ingest.common import build_output_dir
+from common.cli import add_date_arg
 
 # ========== Configuration ==========
 
@@ -43,7 +45,9 @@ def run(date: datetime) -> None:
     convert_ndsi(date)
 
 def main() -> None:
-    args = parse_args()
+    parser = argparse.ArgumentParser()
+    add_date_arg(parser)
+    args = parser.parse_args()
     target_date = datetime.strptime(args.date, "%Y-%m-%d") if args.date else datetime.today()
     run(target_date)
 
