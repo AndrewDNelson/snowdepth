@@ -19,4 +19,4 @@ COPY . /app
 
 ENV PYTHONPATH=/app/src
 
-ENTRYPOINT ["python", "src/ingest/run_ingest.py"]
+ENTRYPOINT ["python", "-m", "src.main"]
