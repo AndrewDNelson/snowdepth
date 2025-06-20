@@ -1,5 +1,6 @@
 """Convert SNODAS binary file to GeoTIFF."""
 
+import logging
 import os
 import subprocess
 
@@ -7,10 +8,12 @@ from datetime import datetime
 from pathlib import Path
 
 from common.cli import CustomArgumentParser
+from common.logging_utils import setup_logging
 from ingest.common import build_output_dir
 
 # ========== Configuration ==========
 
+logger = logging.GetLogger()
 BASE_DIR = Path("data/snodas")
 HDR_CONTENT = """ENVI
 samples = 8192
@@ -57,6 +60,7 @@ def main() -> None:
     parser.add_date_arg()
     args = parser.parse_args()
     target_date = datetime.strptime(args.date, "%Y-%m-%d") if args.date else datetime.today()
+    setup_logging()
     run(target_date)
 
 if __name__ == "__main__":

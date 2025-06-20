@@ -1,5 +1,6 @@
 """Convert ndsi hdf file to GeoTIFF."""
 
+import logging
 import os
 import subprocess
 
@@ -7,10 +8,12 @@ from datetime import datetime
 from pathlib import Path
 
 from ingest.common import build_output_dir
+from common.logging_utils import setup_logging
 from common.cli import CustomArgumentParser
 
 # ========== Configuration ==========
 
+logger = logging.GetLogger()
 BASE_DIR = Path("data/ndsi")
 
 def hdf_to_tif(input_path: Path, output_path: Path):
@@ -48,6 +51,7 @@ def main() -> None:
     parser.add_date_arg()
     args = parser.parse_args()
     target_date = datetime.strptime(args.date, "%Y-%m-%d") if args.date else datetime.today()
+    setup_logging()
     run(target_date)
 
 if __name__ == "__main__":
