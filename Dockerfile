@@ -1,7 +1,7 @@
 FROM python:3.13-bookworm
 
 # Instal gdal
-# RUN apt-get update && apt-get install -y gdal-bin libgdal-dev libhdf4-alt-dev libhdf4-0 libhdf4-doc
+RUN apt-get update && apt-get install -y gdal-bin libgdal-dev libhdf4-alt-dev libhdf4-0 libhdf4-doc
 # RUN apt-get update && apt-get install -y gdal-bin
 
 # Set working directory

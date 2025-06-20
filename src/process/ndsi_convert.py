@@ -39,10 +39,13 @@ def convert_ndsi(date: datetime) -> None:
         os.makedirs(converted_dir, exist_ok=True)
         hdf_to_tif(hdf_path, tif_path)
 
+def run(date: datetime) -> None:
+    convert_ndsi(date)
+
 def main() -> None:
     args = parse_args()
     target_date = datetime.strptime(args.date, "%Y-%m-%d") if args.date else datetime.today()
-    convert_ndsi(target_date)
+    run(target_date)
 
 if __name__ == "__main__":
     main()

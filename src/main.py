@@ -3,6 +3,8 @@ from datetime import datetime
 from common.logging_utils import setup_logging
 from ingest.ndsi import run as ingest_ndsi
 from ingest.snodas import run as ingest_snodas
+from process.ndsi_convert import run as convert_ndsi
+from process.snodas_convert import run as convert_snodas
 
 def parse_args():
     import argparse
@@ -21,11 +23,9 @@ def main():
 
     setup_logging()
     # ingest_ndsi(date)
-    ingest_snodas(date)
-
-    # run snodas process
-    # run ndsi process
-
+    # ingest_snodas(date)
+    # convert_ndsi(date)
+    # convert_snodas(date)
 
 if __name__ == "__main__":
     main()

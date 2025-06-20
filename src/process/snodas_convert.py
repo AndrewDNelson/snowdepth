@@ -42,16 +42,19 @@ def convert_snodas(date: datetime) -> None:
 def dat_to_tif(input_path: Path, output_path: Path) -> None:
     """Run gdal translate command."""
     subprocess.run(
-        ["gdal_translate", "-of", "GTiff", "-a_srs", "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs", "-a_nodata", "-9999", "-a_ullr", "-130.51708333333333", "58.23291666666667", "-62.25041666666667", "24.09958333333333", str(input_path), str(output_path)]
+        ["gdal_translate", "-of", "GTiff", "-a_srs", "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs", "-a_nodata", "-9999", "-a_ullr", "-130.51708333333333", "58.23291666666667", "-62.25041666666667", "24.09958333333333", str(input_path), str(output_path)],
         check=True,
-        capture_output=True
+        capture_output=True,
         text=True
     )
+
+def run(date: datetime) -> None:
+    convert_snodas(date)
 
 def main() -> None:
     args = parse_args()
     target_date = datetime.strptime(args.date, "%Y-%m-%d") if args.date else datetime.today()
-    convert_snodas(target_date)
+    run(target_date)
 
 if __name__ == "__main__":
     main()
