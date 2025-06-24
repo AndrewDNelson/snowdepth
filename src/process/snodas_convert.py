@@ -32,11 +32,12 @@ def convert_snodas(date: datetime) -> None:
 
     file_path = next((f for f in raw_dir.iterdir() if f.suffix == ".dat"), None)
     if not file_path:
-        raise RuntimeError(f"No .dat file found in {raw_dir}")
+        logger.error("No .dat file found in %s", raw_dir)
+        raise FileNotFoundError(f"No .dat file found in {raw_dir}")
     
     dat_path = file_path.with_suffix(".dat")
     hdr_path = file_path.with_suffix(".hdr")
-    with open(hdr_path, "x") as f:
+    with open(hdr_path, "w") as f:
         f.write(HDR_CONTENT)
 
     tif_path = converted_dir / file_path.with_suffix(".tif").name
@@ -45,12 +46,17 @@ def convert_snodas(date: datetime) -> None:
 
 def dat_to_tif(input_path: Path, output_path: Path) -> None:
     """Run gdal translate command."""
-    subprocess.run(
-        ["gdal_translate", "-of", "GTiff", "-a_srs", "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs", "-a_nodata", "-9999", "-a_ullr", "-130.51708333333333", "58.23291666666667", "-62.25041666666667", "24.09958333333333", str(input_path), str(output_path)],
-        check=True,
-        capture_output=True,
-        text=True
-    )
+    try:
+        subprocess.run(
+            ["gdal_translate", "-of", "GTiff", "-a_srs", "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs", "-a_nodata", "-9999", "-a_ullr", "-130.51708333333333", "58.23291666666667", "-62.25041666666667", "24.09958333333333", str(input_path), str(output_path)],
+            check=True,
+            capture_output=True,
+            text=True
+        )
+        logger.info("Converted %s to %s.", input_path.name, output_path.name)
+    except subprocess.CalledProcessError as e:
+        logger.error("gdal_translate failed converting %s: %s", input_path.name, e.stderr)
+        raise
 
 def run(date: datetime) -> None:
     convert_snodas(date)

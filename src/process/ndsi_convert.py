@@ -13,7 +13,7 @@ from common.cli import CustomArgumentParser
 
 # ========== Configuration ==========
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 BASE_DIR = Path("data/ndsi")
 
 def hdf_to_tif(input_path: Path, output_path: Path):
@@ -24,9 +24,9 @@ def hdf_to_tif(input_path: Path, output_path: Path):
             capture_output=True, 
             text=True
         )
+        logger.info("Converted %s to %s.", input_path.name, output_path.name)
     except subprocess.CalledProcessError as e:
-        print("gdal_translate failed")
-        print(e.stderr)
+        logger.error("gdal_translate failed for %s: %s", input_path.name, e.stderr)
         raise
 
 def convert_ndsi(date: datetime) -> None:
@@ -34,13 +34,15 @@ def convert_ndsi(date: datetime) -> None:
     raw_dir = build_output_dir(date, BASE_DIR / "raw")
     converted_dir = build_output_dir(date, BASE_DIR / "converted")
 
-    files = list(f for f in raw_dir.iterdir() if f.suffix == ".hdf")
+    files = list(raw_dir.glob('*.hdf'))
     if not files:
-        raise RuntimeError(f"No .hdf files found in {raw_dir}")
+        logger.error(f"NSDI conversion failed. No .hdf files found in {raw_dir}")
+        raise FileNotFoundError(f"No .hdf files found in {raw_dir}")
     
+    os.makedirs(converted_dir, exist_ok=True)
     for hdf_path in files:
         tif_path = converted_dir / hdf_path.with_suffix(".tif").name
-        os.makedirs(converted_dir, exist_ok=True)
+        logger.info("Starting conversion of %s to %s.", hdf_path.name, tif_path.name)
         hdf_to_tif(hdf_path, tif_path)
 
 def run(date: datetime) -> None:
