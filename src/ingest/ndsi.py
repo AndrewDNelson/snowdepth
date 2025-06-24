@@ -11,10 +11,13 @@ from typing import List
 import requests
 import bs4
 
-from ingest.common import setup_logging, build_output_dir, format_date, parse_args
+from common.cli import CustomArgumentParser
+from common.logging_utils import setup_logging
+from ingest.common import build_output_dir, format_date
 
 # ========== Configuration ==========
 
+logger = logging.getLogger(__name__)
 BASE_DIR = Path("data/ndsi")
 BASE_URL = "https://cmr.earthdata.nasa.gov/virtual-directory/collections/C3028765772-NSIDC_CPRD/temporal"
 
@@ -25,7 +28,7 @@ def setup_netrc() -> None:
         USERNAME = os.getenv("EARTHDATA_USERNAME")
         PASSWORD = os.getenv("EARTHDATA_PASSWORD")
         if not USERNAME or not PASSWORD:
-            logging.error("Missing EARTHDATA_USERNAME or EARTHDATA_PASSWORD in environment.")
+            logger.error("Missing EARTHDATA_USERNAME or EARTHDATA_PASSWORD in environment.")
             raise RuntimeError("Missing EARTHDATA_USERNAME or EARTHDATA_PASSWORD")
 
         netrc_path.write_text(
@@ -46,7 +49,7 @@ def fetch_hdf_links(url: str) -> List[str]:
         page = requests.get(url)
         page.raise_for_status()
     except requests.RequestException as exc:
-        logging.error("Failed to fetch listing from %s: %s", url, exc)
+        logger.error("Failed to fetch listing from %s: %s", url, exc)
         return[]
     
     soup = bs4.BeautifulSoup(page.text, "html.parser")
@@ -62,7 +65,7 @@ def download_ndsi_files(date: datetime) -> None:
     hrefs = fetch_hdf_links(url)
 
     if not hrefs:
-        logging.warning("No .hdf download links found at %s", url)
+        logger.warning("No .hdf download links found at %s", url)
         return
     
     output_dir = build_output_dir(date, BASE_DIR / "raw")
@@ -87,24 +90,29 @@ def download_ndsi_files(date: datetime) -> None:
                                 f.write(chunk)
 
                     success_count += 1
-                    logging.info("Saved %s", local_path)
+                    logger.info("Saved %s", local_path)
                 else:
-                    logging.error(
+                    logger.error(
                         "Unexpected response code %s for %s", 
                         response.status_code, 
                         href,
                     )
                     
             except requests.exceptions.RequestException as exc:
-                logging.error("Download failed for %s: %s", href, str(exc))
-        logging.info("Successfully downloaded %s of %s NDSI files.", success_count, len(hrefs))
+                logger.error("Download failed for %s: %s", href, str(exc))
+        logger.info("Successfully downloaded %s of %s NDSI files.", success_count, len(hrefs))
+
+def run(date: datetime) -> None:
+    setup_netrc()
+    download_ndsi_files(date)
 
 def main() -> None:
-    args = parse_args()
+    parser = CustomArgumentParser()
+    parser.add_date_arg()
+    args = parser.parse_args()
     target_date = datetime.strptime(args.date, "%Y-%m-%d") if args.date else datetime.today()
-    setup_netrc()
-    setup_logging("ndsi", target_date.strftime("%Y-%m-%d"))
-    download_ndsi_files(target_date)
+    setup_logging()
+    run(target_date)
 
 if __name__ == "__main__":
     main()
